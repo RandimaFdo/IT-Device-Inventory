@@ -3,7 +3,7 @@ import InventoryCategoryView from './InventoryCategoryView';
 function InventoryEmail({
   title = 'Email Accounts',
   description = 'Mailbox provisioning and seat tracking.',
-  showForm = false,
+  showForm = true,
   ...rest
 }) {
   return (
