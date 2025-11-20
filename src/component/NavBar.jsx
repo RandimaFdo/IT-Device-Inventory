@@ -16,7 +16,7 @@ function NavBar({ activeTab, setActiveTab, isMenuOpen, toggleMenu, onNavigate, s
   const navItems = [
     { id: 'dashboard', icon: <BsSpeedometer2 />, label: 'Dashboard' },
     { id: 'inventory', icon: <BsBoxSeam />, label: 'Inventory' },
-    { id: 'reports', icon: <BsGraphUp />, label: 'Reports' },
+    { id: 'reports', icon: <BsGraphUp />, label: 'Device Users' },
     { id: 'settings', icon: <BsGear />, label: 'Settings' }
   ];
 

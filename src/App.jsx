@@ -4,7 +4,7 @@ import './App.css';
 import NavBar from './component/NavBar';
 import Dashboard from './component/Dashboard';
 import Inventory from './component/Inventory';
-import Reports from './component/Reports';
+import DeviceUsers from './component/DeviceUsers';
 import Settings from './component/Settings';
 import Footer from './component/Footer';
 
@@ -212,53 +212,6 @@ function App() {
     return `${label} Inventory`;
   };
 
-  const reportsSummary = [
-    { title: 'Assets in use', value: activeAssets, meta: '+4% vs last month' },
-    { title: 'Back up coverage', value: backupAssets, meta: 'Spare devices available' },
-    { title: 'Disposals pending', value: disposedAssets, meta: 'Awaiting recycler pickup' }
-  ];
-
-  const monthlyMovements = [
-    { month: 'Jan', value: 72 },
-    { month: 'Feb', value: 55 },
-    { month: 'Mar', value: 68 },
-    { month: 'Apr', value: 74 },
-    { month: 'May', value: 61 },
-    { month: 'Jun', value: 78 }
-  ];
-
-  const reportInsights = [
-    { title: 'Inventory accuracy', value: '99.3%', meta: 'Audit completed 6 days ago', trend: '+1.2% vs Q2' },
-    { title: 'Avg refresh age', value: '26 mo', meta: 'Target < 30 months', trend: '-4 mo YoY' },
-    { title: 'Tickets resolved', value: '42', meta: 'SLA met for 94%', trend: '+8 this week' },
-    { title: 'Backlog risk', value: 'Low', meta: '4 approvals pending', trend: 'Stable' }
-  ];
-
-  const complianceSnapshot = [
-    { title: 'Lifecycle compliance', value: '98%', status: 'On track', meta: 'Policy threshold 95%', progress: 98, level: 'good' },
-    { title: 'Security posture', value: '92%', status: 'Monitor', meta: '2 patch waves outstanding', progress: 92, level: 'warn' },
-    { title: 'Warranty coverage', value: '88%', status: 'Renew', meta: '11 devices expiring in 30 days', progress: 88, level: 'warn' }
-  ];
-
-  const vendorSpend = [
-    { vendor: 'Dell', spend: '$38K', change: '+12% QoQ', coverage: 36 },
-    { vendor: 'Apple', spend: '$22K', change: '+4% QoQ', coverage: 21 },
-    { vendor: 'HP', spend: '$18K', change: '-3% QoQ', coverage: 17 },
-    { vendor: 'Lenovo', spend: '$15K', change: '+9% QoQ', coverage: 14 }
-  ];
-
-  const refreshSchedule = [
-    { assetType: 'Laptops', window: 'Q1 2026', count: 18, status: 'Coordinating' },
-    { assetType: 'Displays', window: 'Q3 2025', count: 12, status: 'Scheduled' },
-    { assetType: 'Mobile devices', window: 'Q4 2025', count: 20, status: 'Planning' }
-  ];
-
-  const incidentFeed = [
-    { title: 'Laptop loss reported', detail: 'Marketing · asset INV-554', severity: 'high', status: 'Investigating', time: '2h ago' },
-    { title: 'Battery recall notice', detail: 'Lenovo lot #8127', severity: 'medium', status: 'Action required', time: 'Yesterday' },
-    { title: 'Patch window complete', detail: 'Exchange servers', severity: 'low', status: 'Closed', time: '2 days ago' }
-  ];
-
   const handleNavigate = (sectionId) => {
     if (sectionId === 'inventory') {
       setTimeout(() => {
@@ -295,18 +248,7 @@ function App() {
           />
         );
       case 'reports':
-        return (
-          <Reports
-            reportsSummary={reportsSummary}
-            monthlyMovements={monthlyMovements}
-            categoryTotals={categoryTotals}
-            reportInsights={reportInsights}
-            complianceSnapshot={complianceSnapshot}
-            vendorSpend={vendorSpend}
-            refreshSchedule={refreshSchedule}
-            incidentFeed={incidentFeed}
-          />
-        );
+        return <DeviceUsers />;
       case 'settings':
         return (
           <Settings
