@@ -67,8 +67,10 @@ function App() {
   };
 
   const addItem = (e) => {
-    e.preventDefault();
-    if (!newItem.name) return;
+    if (e?.preventDefault) {
+      e.preventDefault();
+    }
+    if (!newItem.name?.trim()) return;
 
     if (editingItemId) {
       setInventory(prev => prev.map(item => (
@@ -97,8 +99,6 @@ function App() {
     if (!isAllInventoryView && activeInventoryType !== itemToEdit.assetType) {
       setActiveInventoryType(itemToEdit.assetType);
     }
-
-    inventorySectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const cancelEdit = () => {
@@ -212,15 +212,7 @@ function App() {
     return `${label} Inventory`;
   };
 
-  const handleNavigate = (sectionId) => {
-    if (sectionId === 'inventory') {
-      setTimeout(() => {
-        if (inventorySectionRef.current) {
-          inventorySectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 200);
-    }
-  };
+  const handleNavigate = () => {};
 
   const renderPageContent = () => {
     switch (activeTab) {
@@ -245,6 +237,7 @@ function App() {
             isEditing={isEditing}
             onEditItem={handleEditItem}
             onCancelEdit={cancelEdit}
+            resetNewItem={resetNewItem}
           />
         );
       case 'reports':

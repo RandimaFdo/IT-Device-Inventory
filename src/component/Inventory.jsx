@@ -1,21 +1,440 @@
-import { FiDownload, FiPlus } from 'react-icons/fi';
-import InventoryAll from '../Inventory/InventoryAll';
-import InventoryTV from '../Inventory/InventoryTV';
-import InventoryLaptop from '../Inventory/InventoryLaptop';
-import InventoryMouse from '../Inventory/InventoryMouse';
-import InventoryPhones from '../Inventory/InventoryPhones';
-import InventorySIM from '../Inventory/InventorySIM';
-import InventoryEmail from '../Inventory/InventoryEmail';
+import { useEffect, useState } from 'react';
+import { FiDownload, FiPlus, FiChevronDown, FiSearch, FiFilter } from 'react-icons/fi';
 
-const categoryComponents = {
-  All: InventoryAll,
-  TV: InventoryTV,
-  Laptop: InventoryLaptop,
-  Mouse: InventoryMouse,
-  Phones: InventoryPhones,
-  SIM: InventorySIM,
-  Email: InventoryEmail
+const categoryContentMap = {
+  All: {
+    title: 'All Inventory',
+    description: 'Complete overview of every asset category across your workspace.',
+    showForm: true
+  },
+  TV: {
+    title: 'TV Displays Inventory',
+    description: 'Conference & signage screens across all locations.',
+    showForm: true
+  },
+  Laptop: {
+    title: 'Laptop Inventory',
+    description: 'Portable workstations issued to teams and departments.',
+    showForm: true
+  },
+  Mouse: {
+    title: 'Peripheral Inventory',
+    description: 'Pointing devices and other accessories ready for deployment.',
+    showForm: true
+  },
+  Phones: {
+    title: 'Corporate Phones',
+    description: 'Provisioned smartphones and voice devices.',
+    showForm: true
+  },
+  SIM: {
+    title: 'SIM & Connectivity',
+    description: 'Managed SIM cards for data and voice plans.',
+    showForm: true
+  },
+  Email: {
+    title: 'Email Accounts',
+    description: 'Mailbox provisioning and license tracking.',
+    showForm: true
+  }
 };
+
+function InventoryCategoryView({
+  title,
+  description,
+  showForm,
+  newItem,
+  handleInputChange,
+  isAllInventoryView,
+  assetTypeOptions,
+  activeInventoryType,
+  inventorySectionRef,
+  getInventoryHeading,
+  filteredInventory,
+  removeItem,
+  searchQuery,
+  onSearchChange,
+  onEditItem,
+  onCancelEdit,
+  isEditing,
+  editingItemId,
+  isDeviceFormOpen,
+  onDeviceFormSubmit,
+  onCancelDeviceForm,
+  onOpenDeviceForm
+}) {
+  const [selectedDeviceId, setSelectedDeviceId] = useState(null);
+
+  const selectedDevice = filteredInventory.find(item => item.id === selectedDeviceId) || null;
+
+  const closeDeviceModal = () => {
+    setSelectedDeviceId(null);
+  };
+
+  useEffect(() => {
+    if (!selectedDeviceId) {
+      return undefined;
+    }
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        closeDeviceModal();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [selectedDeviceId]);
+  const heading = title || getInventoryHeading();
+  const formTitle = isEditing ? 'Update Device' : 'Add Device';
+  const primaryBtnLabel = isEditing ? 'Save Changes' : 'Add Device';
+
+  const totalDevices = filteredInventory.length;
+  const activeDevices = filteredInventory.filter(item => item.status === 'Active').length;
+  const backupDevices = filteredInventory.filter(item => item.status === 'Back Up').length;
+  const disposedDevices = filteredInventory.filter(item => item.status === 'Disposed').length;
+  const assignedDevices = filteredInventory.filter(item => Boolean(item.assignedTo)).length;
+  const unassignedDevices = Math.max(0, totalDevices - assignedDevices);
+  const assignmentProgress = totalDevices ? Math.min(100, Math.round((assignedDevices / totalDevices) * 100)) : 0;
+
+  return (
+    <div className="device-users-grid inventory-grid" id="inventory-section" ref={inventorySectionRef}>
+      <div className="inventory-list">
+        <div className="list-header">
+          <div>
+            <h2>{heading}</h2>
+            <p className="list-description">
+              {totalDevices} {totalDevices === 1 ? 'device' : 'devices'} · {activeDevices} active · {unassignedDevices} unassigned
+            </p>
+          </div>
+          <div className="list-actions">
+            <div className="search-container">
+              <FiSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search devices..."
+                className="search-input"
+                value={searchQuery}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+              />
+            </div>
+            <button className="btn btn-outline">
+              <FiFilter className="btn-icon" />
+              <span>Filters</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="table-container">
+          {filteredInventory.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-heading">No devices found</div>
+              <p>
+                {searchQuery
+                  ? `We couldn't find any matches for “${searchQuery}”. Try another keyword or clear the search.`
+                  : 'Add a new asset or switch filters to see matching inventory.'}
+              </p>
+            </div>
+          ) : (
+            <table className="device-users-table">
+              <thead>
+                <tr>
+                  <th>Device</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Assigned To</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInventory.map(item => {
+                  const isActive = editingItemId === item.id || selectedDeviceId === item.id;
+                  return (
+                    <tr
+                      key={item.id}
+                      className={`selectable-row ${isActive ? 'active' : ''}`.trim()}
+                      onClick={() => setSelectedDeviceId(item.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setSelectedDeviceId(item.id);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-selected={isActive}
+                    >
+                      <td>
+                        <div className="item-info">
+                          <div className="item-icon">
+                            {item.category === 'Hardware' ? '💻' :
+                             item.category === 'Software' ? '💾' :
+                             item.category === 'Peripheral' ? '🖱️' :
+                             item.category === 'Networking' ? '📡' : '🖥️'}
+                          </div>
+                          <div>
+                            <div className="item-name">{item.name}</div>
+                            <div className="item-sku">SKU: {Math.floor(100000 + Math.random() * 900000)}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{item.category}</td>
+                      <td>
+                        <span className={`status-badge ${item.status.toLowerCase().replace(' ', '-')}`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td>
+                        {item.assignedTo ? (
+                          <span className="status-badge neutral">{item.assignedTo}</span>
+                        ) : (
+                          <span className="detail-muted">Unassigned</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {isDeviceFormOpen && (
+        <div className="modal-overlay" role="presentation" onClick={() => onCancelDeviceForm?.()}>
+          <div
+            className="modal-content user-modal device-form-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="deviceFormTitle"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button className="modal-close" onClick={() => onCancelDeviceForm?.()} aria-label="Close device form">
+              ×
+            </button>
+
+            <header className="modal-header">
+              <h2 id="deviceFormTitle" className="item-name">{formTitle}</h2>
+              <span className="detail-muted">Fill in the device details below</span>
+            </header>
+
+            <form className="modal-body" onSubmit={(event) => onDeviceFormSubmit?.(event)}>
+              <div className="modal-grid">
+                <div className="input-group">
+                  <label>Device Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={newItem.name}
+                    onChange={handleInputChange}
+                    placeholder="Enter item name"
+                    required
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Category</label>
+                  <div className="select-wrapper">
+                    <select
+                      name="category"
+                      value={newItem.category}
+                      onChange={handleInputChange}
+                    >
+                      <option value="Hardware">Hardware</option>
+                      <option value="Software">Software</option>
+                      <option value="Peripheral">Peripheral</option>
+                      <option value="Networking">Networking</option>
+                      <option value="Display">Display</option>
+                      <option value="Phones">Phones</option>
+                    </select>
+                    <FiChevronDown className="select-arrow" />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label>Status</label>
+                  <div className="select-wrapper">
+                    <select
+                      name="status"
+                      value={newItem.status}
+                      onChange={handleInputChange}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Back Up">Back Up</option>
+                      <option value="Disposed">Disposed</option>
+                    </select>
+                    <FiChevronDown className="select-arrow" />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label>Asset Type</label>
+                  {isAllInventoryView ? (
+                    <div className="select-wrapper">
+                      <select
+                        name="assetType"
+                        value={newItem.assetType}
+                        onChange={handleInputChange}
+                      >
+                        {assetTypeOptions.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                      <FiChevronDown className="select-arrow" />
+                    </div>
+                  ) : (
+                    <div className="readonly-pill">
+                      {activeInventoryType}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  className="btn btn-outline"
+                  type="button"
+                  onClick={() => onCancelDeviceForm?.()}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  <FiPlus className="btn-icon" />
+                  {primaryBtnLabel}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <aside className="device-users-summary inventory-summary">
+        <div className="summary-card">
+          <h3>Inventory snapshot</h3>
+          <ul>
+            <li>
+              <span>Total devices</span>
+              <strong>{totalDevices}</strong>
+            </li>
+            <li>
+              <span>Active</span>
+              <strong>{activeDevices}</strong>
+            </li>
+            <li>
+              <span>Back up pool</span>
+              <strong>{backupDevices}</strong>
+            </li>
+            <li>
+              <span>Disposed</span>
+              <strong>{disposedDevices}</strong>
+            </li>
+            <li>
+              <span>Assigned</span>
+              <strong>{assignedDevices}</strong>
+            </li>
+            <li>
+              <span>Unassigned</span>
+              <strong>{unassignedDevices}</strong>
+            </li>
+          </ul>
+        </div>
+
+        <div className="summary-card light">
+          <h4>Utilization</h4>
+          <p className="summary-meta">
+            {assignedDevices} of {totalDevices || '--'} devices are allocated to teammates.
+          </p>
+          <div className="progress-bar">
+            <div className="progress" style={{ width: `${assignmentProgress}%` }} />
+          </div>
+          <small>Assignments sync instantly with the Device Users view.</small>
+        </div>
+      </aside>
+      {selectedDevice && (
+        <div className="modal-overlay" role="presentation" onClick={closeDeviceModal}>
+          <div
+            className="modal-content user-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="deviceModalTitle"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button className="modal-close" onClick={closeDeviceModal} aria-label="Close device details">
+              ×
+            </button>
+
+            <header className="modal-header">
+              <div className="item-info">
+                <div className="item-icon">
+                  {selectedDevice.category === 'Hardware' ? '💻' :
+                   selectedDevice.category === 'Software' ? '💾' :
+                   selectedDevice.category === 'Peripheral' ? '🖱️' :
+                   selectedDevice.category === 'Networking' ? '📡' : '🖥️'}
+                </div>
+                <div>
+                  <h2 id="deviceModalTitle" className="item-name">{selectedDevice.name}</h2>
+                  <p className="item-sku">{selectedDevice.assetType}</p>
+                </div>
+              </div>
+              <span className={`status-badge ${selectedDevice.status.toLowerCase().replace(' ', '-')}`}>
+                {selectedDevice.status}
+              </span>
+            </header>
+
+            <div className="modal-body">
+              <div className="modal-grid">
+                <div className="input-group">
+                  <label>Category</label>
+                  <input type="text" value={selectedDevice.category} disabled />
+                </div>
+                <div className="input-group">
+                  <label>Asset Type</label>
+                  <input type="text" value={selectedDevice.assetType} disabled />
+                </div>
+                <div className="input-group">
+                  <label>Status</label>
+                  <input type="text" value={selectedDevice.status} disabled />
+                </div>
+                <div className="input-group">
+                  <label>Assigned To</label>
+                  <input type="text" value={selectedDevice.assignedTo || 'Unassigned'} disabled />
+                </div>
+              </div>
+
+              <div className="user-device-section">
+                <h4>Assignment</h4>
+                {selectedDevice.assignedTo ? (
+                  <p>{selectedDevice.name} is with {selectedDevice.assignedTo}.</p>
+                ) : (
+                  <p className="detail-muted">This device is currently unassigned.</p>
+                )}
+                <small className="detail-muted">Reassign devices from the Device Users view for full context.</small>
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  className="btn btn-outline"
+                  type="button"
+                  onClick={() => {
+                    onEditItem?.(selectedDevice.id);
+                    onOpenDeviceForm?.();
+                    closeDeviceModal();
+                  }}
+                >
+                  Edit device
+                </button>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => {
+                    removeItem(selectedDevice.id);
+                    closeDeviceModal();
+                  }}
+                >
+                  Delete device
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Inventory(props) {
   const {
@@ -23,10 +442,51 @@ function Inventory(props) {
     activeInventoryType,
     setActiveInventoryType,
     getTypeCount,
-    inventorySectionRef
+    inventorySectionRef,
+    newItem,
+    handleInputChange,
+    addItem,
+    isAllInventoryView,
+    assetTypeOptions,
+    getInventoryHeading,
+    filteredInventory,
+    removeItem,
+    searchQuery,
+    onSearchChange,
+    onEditItem,
+    onCancelEdit,
+    resetNewItem,
+    isEditing
   } = props;
 
-  const ActiveCategory = categoryComponents[activeInventoryType] || InventoryAll;
+  const { title, description, showForm } = categoryContentMap[activeInventoryType] || categoryContentMap.All;
+  const [isDeviceFormOpen, setIsDeviceFormOpen] = useState(false);
+
+  const openCreateDeviceModal = () => {
+    if (isEditing) {
+      onCancelEdit?.();
+    }
+    resetNewItem?.();
+    setIsDeviceFormOpen(true);
+  };
+
+  const handleDeviceFormSubmit = (event) => {
+    addItem(event);
+    setIsDeviceFormOpen(false);
+  };
+
+  const handleCancelDeviceForm = () => {
+    if (isEditing) {
+      onCancelEdit?.();
+    }
+    resetNewItem?.();
+    setIsDeviceFormOpen(false);
+  };
+
+  const handleEditDevice = (itemId) => {
+    onEditItem?.(itemId);
+    setIsDeviceFormOpen(true);
+  };
 
   return (
     <>
@@ -43,7 +503,7 @@ function Inventory(props) {
             </button>
             <button
               className="btn btn-primary"
-              onClick={() => inventorySectionRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={openCreateDeviceModal}
             >
               <FiPlus className="btn-icon" />
               <span>Add Item</span>
@@ -72,7 +532,28 @@ function Inventory(props) {
           ))}
         </div>
 
-        <ActiveCategory {...props} />
+        <InventoryCategoryView
+          {...props}
+          title={title}
+          description={description}
+          showForm={showForm}
+          newItem={newItem}
+          handleInputChange={handleInputChange}
+          isAllInventoryView={isAllInventoryView}
+          assetTypeOptions={assetTypeOptions}
+          getInventoryHeading={getInventoryHeading}
+          filteredInventory={filteredInventory}
+          removeItem={removeItem}
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          onEditItem={handleEditDevice}
+          onCancelEdit={onCancelEdit}
+          isEditing={isEditing}
+          isDeviceFormOpen={isDeviceFormOpen}
+          onDeviceFormSubmit={handleDeviceFormSubmit}
+          onCancelDeviceForm={handleCancelDeviceForm}
+          onOpenDeviceForm={() => setIsDeviceFormOpen(true)}
+        />
       </main>
     </>
   );

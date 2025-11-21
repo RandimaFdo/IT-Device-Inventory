@@ -6,7 +6,8 @@ import {
   FiDollarSign,
   FiCpu,
   FiCoffee,
-  FiTool
+  FiTool,
+  FiPlus
 } from 'react-icons/fi';
 
 const departmentOptions = [
@@ -36,12 +37,14 @@ function DeviceUsers() {
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [editableUser, setEditableUser] = useState(null);
   const [deviceInput, setDeviceInput] = useState('');
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   const closeUserModal = () => {
     setSelectedUserId(null);
     setIsEditingUser(false);
     setEditableUser(null);
     setDeviceInput('');
+    setIsCreatingUser(false);
   };
 
   useEffect(() => {
@@ -76,13 +79,17 @@ function DeviceUsers() {
     ? departmentRoster
     : departmentRoster.filter(user => user.department === activeDepartment);
 
-  const selectedUser = departmentRoster.find(user => user.id === selectedUserId) || null;
+  const isNewUser = selectedUserId === 'new';
+  const selectedUser = isNewUser ? null : departmentRoster.find(user => user.id === selectedUserId) || null;
+  const modalUser = isNewUser ? editableUser : selectedUser;
   const selectedUserDevices = editableUser?.devices ?? selectedUser?.devices ?? [];
 
   useEffect(() => {
     if (selectedUserId && selectedUser) {
       setEditableUser({ ...selectedUser, devices: [...selectedUser.devices] });
       setDeviceInput('');
+      setIsEditingUser(false);
+      setIsCreatingUser(false);
     }
   }, [selectedUserId, selectedUser]);
 
@@ -95,7 +102,28 @@ function DeviceUsers() {
     return departmentStats[deptId]?.people || 0;
   };
 
-  const getInitials = (name) => name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase();
+  const getInitials = (name = '') => (
+    name.trim().length
+      ? name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()
+      : 'NU'
+  );
+
+  const startCreateUser = () => {
+    const defaultDepartment = departmentOptions.find(option => option.id !== 'All Departments')?.id || 'Admin & General';
+    const newUserTemplate = {
+      id: Date.now(),
+      name: '',
+      role: '',
+      department: defaultDepartment,
+      devices: [],
+      status: 'Active'
+    };
+    setEditableUser(newUserTemplate);
+    setSelectedUserId('new');
+    setIsEditingUser(true);
+    setIsCreatingUser(true);
+    setDeviceInput('');
+  };
 
   return (
     <>
@@ -109,6 +137,10 @@ function DeviceUsers() {
             <button className="btn btn-outline">
               <FiDownload className="btn-icon" />
               <span>Export roster</span>
+            </button>
+            <button className="btn btn-primary" onClick={startCreateUser}>
+              <FiPlus className="btn-icon" />
+              <span>Add user</span>
             </button>
           </div>
         </div>
@@ -219,7 +251,7 @@ function DeviceUsers() {
               <p className="summary-meta">
                 Choose a teammate from the roster to open their profile in a focused popup with device history.
               </p>
-              <small>{selectedUser ? 'Press Esc or use the close button to dismiss the profile.' : 'No user selected yet.'}</small>
+              <small>{modalUser ? 'Press Esc or use the close button to dismiss the profile.' : 'No user selected yet.'}</small>
             </div>
 
             <div className="summary-card">
@@ -265,7 +297,7 @@ function DeviceUsers() {
         </div>
       </main>
 
-      {selectedUser && (
+      {modalUser && (
         <div
           className="modal-overlay"
           role="presentation"
@@ -284,14 +316,14 @@ function DeviceUsers() {
 
             <header className="modal-header">
               <div className="item-info">
-                <div className="item-icon avatar-pill large">{getInitials(selectedUser.name)}</div>
+                <div className="item-icon avatar-pill large">{getInitials(modalUser.name)}</div>
                 <div>
-                  <h2 id="userModalTitle" className="item-name">{selectedUser.name}</h2>
-                  <p className="item-sku">{selectedUser.role}</p>
+                  <h2 id="userModalTitle" className="item-name">{modalUser.name || 'New team member'}</h2>
+                  <p className="item-sku">{modalUser.role || 'Define their role'}</p>
                 </div>
               </div>
-              <span className={`status-badge ${selectedUser.status.toLowerCase().replace(' ', '-')}`}>
-                {selectedUser.status}
+              <span className={`status-badge ${modalUser.status.toLowerCase().replace(' ', '-')}`}>
+                {modalUser.status}
               </span>
             </header>
 
@@ -400,6 +432,10 @@ function DeviceUsers() {
                       className="btn btn-outline"
                       type="button"
                       onClick={() => {
+                        if (isNewUser) {
+                          closeUserModal();
+                          return;
+                        }
                         setIsEditingUser(false);
                         setEditableUser({ ...selectedUser, devices: [...selectedUser.devices] });
                         setDeviceInput('');
@@ -411,10 +447,18 @@ function DeviceUsers() {
                       className="btn btn-primary"
                       type="button"
                       onClick={() => {
-                        setDepartmentRoster(prev => prev.map(user => (
-                          user.id === editableUser.id ? { ...editableUser } : user
-                        )));
+                        if (!editableUser?.name?.trim()) {
+                          return;
+                        }
+                        setDepartmentRoster(prev => {
+                          const exists = prev.some(user => user.id === editableUser.id);
+                          if (exists) {
+                            return prev.map(user => (user.id === editableUser.id ? { ...editableUser } : user));
+                          }
+                          return [...prev, { ...editableUser }];
+                        });
                         setIsEditingUser(false);
+                        setIsCreatingUser(false);
                         setSelectedUserId(editableUser.id);
                       }}
                     >
@@ -426,6 +470,7 @@ function DeviceUsers() {
                     className="btn btn-outline"
                     type="button"
                     onClick={() => setIsEditingUser(true)}
+                    disabled={!selectedUser}
                   >
                     Edit user
                   </button>
