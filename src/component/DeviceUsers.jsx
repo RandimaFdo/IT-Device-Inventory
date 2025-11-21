@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   FiDownload,
   FiUsers,
@@ -18,7 +18,7 @@ const departmentOptions = [
   { id: 'Engineering', label: 'Engineering', hint: 'Product & field teams', icon: <FiTool /> }
 ];
 
-const departmentRoster = [
+const initialDepartmentRoster = [
   { id: 1, name: 'Ava Dias', role: 'Operations Manager', department: 'Admin & General', devices: ['MacBook Pro', 'Logitech Headset'], status: 'Active' },
   { id: 2, name: 'Jordan Perera', role: 'Finance Analyst', department: 'Finance', devices: ['Surface Laptop', 'Smartphone'], status: 'Active' },
   { id: 3, name: 'Ishan Rodrigo', role: 'Systems Engineer', department: 'Information Technology', devices: ['ThinkPad', 'iPad', 'Network Toolkit'], status: 'Active' },
@@ -30,7 +30,30 @@ const departmentRoster = [
 ];
 
 function DeviceUsers() {
+  const [departmentRoster, setDepartmentRoster] = useState(initialDepartmentRoster);
   const [activeDepartment, setActiveDepartment] = useState('All Departments');
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [editableUser, setEditableUser] = useState(null);
+  const [deviceInput, setDeviceInput] = useState('');
+
+  const closeUserModal = () => {
+    setSelectedUserId(null);
+    setIsEditingUser(false);
+    setEditableUser(null);
+    setDeviceInput('');
+  };
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape' && selectedUserId !== null) {
+        closeUserModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [selectedUserId]);
 
   const departmentStats = useMemo(() => {
     const stats = departmentRoster.reduce((acc, user) => {
@@ -47,11 +70,21 @@ function DeviceUsers() {
     const totalDevices = departmentRoster.reduce((sum, user) => sum + user.devices.length, 0);
     stats['All Departments'] = { people: totalPeople, devices: totalDevices };
     return stats;
-  }, []);
+  }, [departmentRoster]);
 
   const filteredRoster = activeDepartment === 'All Departments'
     ? departmentRoster
     : departmentRoster.filter(user => user.department === activeDepartment);
+
+  const selectedUser = departmentRoster.find(user => user.id === selectedUserId) || null;
+  const selectedUserDevices = editableUser?.devices ?? selectedUser?.devices ?? [];
+
+  useEffect(() => {
+    if (selectedUserId && selectedUser) {
+      setEditableUser({ ...selectedUser, devices: [...selectedUser.devices] });
+      setDeviceInput('');
+    }
+  }, [selectedUserId, selectedUser]);
 
   const activeUsers = filteredRoster.filter(user => user.status === 'Active').length;
   const pendingUsers = filteredRoster.length - activeUsers;
@@ -87,7 +120,10 @@ function DeviceUsers() {
             <button
               key={option.id}
               className={`subnav-btn ${activeDepartment === option.id ? 'active' : ''}`}
-              onClick={() => setActiveDepartment(option.id)}
+              onClick={() => {
+                setActiveDepartment(option.id);
+                setSelectedUserId(null);
+              }}
             >
               <div className="subnav-header">
                 <span className="subnav-icon">{option.icon}</span>
@@ -129,32 +165,48 @@ function DeviceUsers() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRoster.map(user => (
-                      <tr key={user.id}>
-                        <td>
-                          <div className="item-info">
-                            <div className="item-icon avatar-pill">{getInitials(user.name)}</div>
-                            <div>
-                              <div className="item-name">{user.name}</div>
-                              <div className="item-sku">{user.role}</div>
+                    {filteredRoster.map(user => {
+                      const isSelected = selectedUser?.id === user.id;
+                      return (
+                        <tr
+                          key={user.id}
+                          className={`selectable-row ${isSelected ? 'active' : ''}`}
+                          onClick={() => setSelectedUserId(user.id)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              setSelectedUserId(user.id);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          aria-selected={isSelected}
+                        >
+                          <td>
+                            <div className="item-info">
+                              <div className="item-icon avatar-pill">{getInitials(user.name)}</div>
+                              <div>
+                                <div className="item-name">{user.name}</div>
+                                <div className="item-sku">{user.role}</div>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td>{user.department}</td>
-                        <td>
-                          <div className="device-chip-group">
-                            {user.devices.map(device => (
-                              <span key={device} className="status-badge neutral">{device}</span>
-                            ))}
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${user.status.toLowerCase().replace(' ', '-')}`}>
-                            {user.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td>{user.department}</td>
+                          <td>
+                            <div className="device-chip-group">
+                              {user.devices.map(device => (
+                                <span key={device} className="status-badge neutral">{device}</span>
+                              ))}
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${user.status.toLowerCase().replace(' ', '-')}`}>
+                              {user.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
@@ -162,6 +214,14 @@ function DeviceUsers() {
           </div>
 
           <aside className="device-users-summary">
+            <div className="summary-card profile-card hint-card">
+              <h3>User insights</h3>
+              <p className="summary-meta">
+                Choose a teammate from the roster to open their profile in a focused popup with device history.
+              </p>
+              <small>{selectedUser ? 'Press Esc or use the close button to dismiss the profile.' : 'No user selected yet.'}</small>
+            </div>
+
             <div className="summary-card">
               <h3>Department snapshot</h3>
               <ul>
@@ -172,6 +232,10 @@ function DeviceUsers() {
                 <li>
                   <span>Active</span>
                   <strong>{activeUsers}</strong>
+                </li>
+                <li>
+                  <span className="detail-label">Department</span>
+                  <strong>{editableUser?.department || selectedUser?.department || '—'}</strong>
                 </li>
                 <li>
                   <span>Pending / leave</span>
@@ -200,6 +264,177 @@ function DeviceUsers() {
           </aside>
         </div>
       </main>
+
+      {selectedUser && (
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onClick={closeUserModal}
+        >
+          <div
+            className="modal-content user-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="userModalTitle"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button className="modal-close" onClick={closeUserModal} aria-label="Close user details">
+              ×
+            </button>
+
+            <header className="modal-header">
+              <div className="item-info">
+                <div className="item-icon avatar-pill large">{getInitials(selectedUser.name)}</div>
+                <div>
+                  <h2 id="userModalTitle" className="item-name">{selectedUser.name}</h2>
+                  <p className="item-sku">{selectedUser.role}</p>
+                </div>
+              </div>
+              <span className={`status-badge ${selectedUser.status.toLowerCase().replace(' ', '-')}`}>
+                {selectedUser.status}
+              </span>
+            </header>
+
+            <div className="modal-body">
+              <div className="modal-grid">
+                <div className="input-group">
+                  <label htmlFor="userName">Name</label>
+                  <input
+                    id="userName"
+                    type="text"
+                    value={editableUser?.name || ''}
+                    onChange={(event) => setEditableUser(prev => ({ ...prev, name: event.target.value }))}
+                    disabled={!isEditingUser}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="userRole">Role</label>
+                  <input
+                    id="userRole"
+                    type="text"
+                    value={editableUser?.role || ''}
+                    onChange={(event) => setEditableUser(prev => ({ ...prev, role: event.target.value }))}
+                    disabled={!isEditingUser}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="userDepartment">Department</label>
+                  <input
+                    id="userDepartment"
+                    type="text"
+                    value={editableUser?.department || ''}
+                    onChange={(event) => setEditableUser(prev => ({ ...prev, department: event.target.value }))}
+                    disabled={!isEditingUser}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="userStatus">Status</label>
+                  <select
+                    id="userStatus"
+                    value={editableUser?.status || ''}
+                    onChange={(event) => setEditableUser(prev => ({ ...prev, status: event.target.value }))}
+                    disabled={!isEditingUser}
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Onboarding">Onboarding</option>
+                    <option value="Leave">Leave</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="user-device-section">
+                <h4>Assigned devices</h4>
+                {isEditingUser && (
+                  <form
+                    className="device-form"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      if (!deviceInput.trim()) return;
+                      setEditableUser(prev => ({
+                        ...prev,
+                        devices: [...prev.devices, deviceInput.trim()]
+                      }));
+                      setDeviceInput('');
+                    }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Add device name"
+                      value={deviceInput}
+                      onChange={(event) => setDeviceInput(event.target.value)}
+                    />
+                    <button type="submit" className="btn btn-primary small">Add</button>
+                  </form>
+                )}
+
+                {selectedUserDevices.length > 0 ? (
+                  <ul className="modal-device-list editable">
+                    {selectedUserDevices.map(device => (
+                      <li key={device}>
+                        <span className="status-badge neutral">{device}</span>
+                        {isEditingUser && (
+                          <button
+                            type="button"
+                            className="btn-icon"
+                            onClick={() => setEditableUser(prev => ({
+                              ...prev,
+                              devices: prev.devices.filter(item => item !== device)
+                            }))}
+                            aria-label={`Remove ${device}`}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="detail-muted">No devices assigned</p>
+                )}
+              </div>
+
+              <div className="modal-actions">
+                {isEditingUser ? (
+                  <>
+                    <button
+                      className="btn btn-outline"
+                      type="button"
+                      onClick={() => {
+                        setIsEditingUser(false);
+                        setEditableUser({ ...selectedUser, devices: [...selectedUser.devices] });
+                        setDeviceInput('');
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      type="button"
+                      onClick={() => {
+                        setDepartmentRoster(prev => prev.map(user => (
+                          user.id === editableUser.id ? { ...editableUser } : user
+                        )));
+                        setIsEditingUser(false);
+                        setSelectedUserId(editableUser.id);
+                      }}
+                    >
+                      Save changes
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="btn btn-outline"
+                    type="button"
+                    onClick={() => setIsEditingUser(true)}
+                  >
+                    Edit user
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

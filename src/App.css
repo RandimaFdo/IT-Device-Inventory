@@ -829,6 +829,176 @@ tr:last-child td {
   color: var(--danger);
 }
 
+.status-badge.neutral {
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--text);
+}
+
+.avatar-pill {
+  border-radius: var(--radius-full);
+  background: rgba(76, 122, 241, 0.12);
+  color: var(--primary);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.avatar-pill.large {
+  width: 64px;
+  height: 64px;
+  font-size: 1.4rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(5, 12, 31, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+}
+
+.modal-content {
+  position: relative;
+  width: min(480px, 100%);
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  padding: 1.75rem;
+  animation: modalIn var(--transition);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: rgba(76, 122, 241, 0.08);
+}
+
+.modal-device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.modal-device-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.modal-device-list.editable li .btn-icon {
+  border: none;
+  background: rgba(247, 109, 109, 0.08);
+  color: var(--danger);
+  width: 32px;
+  height: 32px;
+}
+
+.modal-grid .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.modal-grid label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.modal-grid input,
+.modal-grid select {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 0.65rem 0.8rem;
+  font-size: 0.95rem;
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.modal-grid input:disabled,
+.modal-grid select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.device-form {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.device-form input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.btn.small {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.hint-card {
+  background: rgba(76, 122, 241, 0.05);
+  border: 1px dashed rgba(76, 122, 241, 0.4);
+  text-align: left;
+}
+
 .pagination-ellipsis {
   padding: 0 0.5rem;
 }
