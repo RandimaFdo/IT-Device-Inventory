@@ -51,15 +51,6 @@ function NavBar({ activeTab, setActiveTab, isMenuOpen, toggleMenu, onNavigate, s
         </div>
 
         <div className="nav-right">
-          <div className="search-bar">
-            <FiSearch className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search inventory..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-            />
-          </div>
           <div className="user-profile">
             <div className="user-info">
               <span className="username">Admin</span>

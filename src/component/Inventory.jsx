@@ -120,6 +120,10 @@ function InventoryCategoryView({
               <FiFilter className="btn-icon" />
               <span>Filters</span>
             </button>
+            <button className="btn btn-primary" onClick={onOpenDeviceForm}>
+              <FiPlus className="btn-icon" />
+              <span>Add Item</span>
+            </button>
           </div>
         </div>
 
@@ -138,7 +142,7 @@ function InventoryCategoryView({
               <thead>
                 <tr>
                   <th>Device</th>
-                  <th>Category</th>
+                  <th>Serial No</th>
                   <th>Status</th>
                   <th>Assigned To</th>
                 </tr>
@@ -175,7 +179,7 @@ function InventoryCategoryView({
                           </div>
                         </div>
                       </td>
-                      <td>{item.category}</td>
+                      <td>{item.serialNumber || `SN-${item.id.toString().padStart(6, '0')}`}</td>
                       <td>
                         <span className={`status-badge ${item.status.toLowerCase().replace(' ', '-')}`}>
                           {item.status}
@@ -229,22 +233,14 @@ function InventoryCategoryView({
                   />
                 </div>
                 <div className="input-group">
-                  <label>Category</label>
-                  <div className="select-wrapper">
-                    <select
-                      name="category"
-                      value={newItem.category}
-                      onChange={handleInputChange}
-                    >
-                      <option value="Hardware">Hardware</option>
-                      <option value="Software">Software</option>
-                      <option value="Peripheral">Peripheral</option>
-                      <option value="Networking">Networking</option>
-                      <option value="Display">Display</option>
-                      <option value="Phones">Phones</option>
-                    </select>
-                    <FiChevronDown className="select-arrow" />
-                  </div>
+                  <label>Serial Number</label>
+                  <input
+                    type="text"
+                    name="serialNumber"
+                    value={newItem.serialNumber || ''}
+                    onChange={handleInputChange}
+                    placeholder="Enter serial number"
+                  />
                 </div>
                 <div className="input-group">
                   <label>Status</label>
@@ -378,8 +374,8 @@ function InventoryCategoryView({
             <div className="modal-body">
               <div className="modal-grid">
                 <div className="input-group">
-                  <label>Category</label>
-                  <input type="text" value={selectedDevice.category} disabled />
+                  <label>Serial No</label>
+                  <input type="text" value={selectedDevice.serialNumber || ''} disabled />
                 </div>
                 <div className="input-group">
                   <label>Asset Type</label>
@@ -395,19 +391,9 @@ function InventoryCategoryView({
                 </div>
               </div>
 
-              <div className="user-device-section">
-                <h4>Assignment</h4>
-                {selectedDevice.assignedTo ? (
-                  <p>{selectedDevice.name} is with {selectedDevice.assignedTo}.</p>
-                ) : (
-                  <p className="detail-muted">This device is currently unassigned.</p>
-                )}
-                <small className="detail-muted">Reassign devices from the Device Users view for full context.</small>
-              </div>
-
               <div className="modal-actions">
                 <button
-                  className="btn btn-outline"
+                  className="btn btn-primary"
                   type="button"
                   onClick={() => {
                     onEditItem?.(selectedDevice.id);
@@ -415,7 +401,7 @@ function InventoryCategoryView({
                     closeDeviceModal();
                   }}
                 >
-                  Edit device
+                  Edit Device
                 </button>
                 <button
                   className="btn btn-primary"
@@ -425,7 +411,7 @@ function InventoryCategoryView({
                     closeDeviceModal();
                   }}
                 >
-                  Delete device
+                  Delete Device
                 </button>
               </div>
             </div>
@@ -500,13 +486,6 @@ function Inventory(props) {
             <button className="btn btn-outline">
               <FiDownload className="btn-icon" />
               <span>Export</span>
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={openCreateDeviceModal}
-            >
-              <FiPlus className="btn-icon" />
-              <span>Add Item</span>
             </button>
           </div>
         </div>

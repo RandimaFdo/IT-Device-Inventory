@@ -109,7 +109,9 @@ function DeviceUsers() {
   );
 
   const startCreateUser = () => {
-    const defaultDepartment = departmentOptions.find(option => option.id !== 'All Departments')?.id || 'Admin & General';
+    const defaultDepartment = activeDepartment !== 'All Departments'
+      ? activeDepartment
+      : '';
     const newUserTemplate = {
       id: Date.now(),
       name: '',
@@ -137,10 +139,6 @@ function DeviceUsers() {
             <button className="btn btn-outline">
               <FiDownload className="btn-icon" />
               <span>Export roster</span>
-            </button>
-            <button className="btn btn-primary" onClick={startCreateUser}>
-              <FiPlus className="btn-icon" />
-              <span>Add user</span>
             </button>
           </div>
         </div>
@@ -177,6 +175,12 @@ function DeviceUsers() {
                 <p className="list-description">
                   {filteredRoster.length} {filteredRoster.length === 1 ? 'person' : 'people'} · {totalDevices} devices checked out
                 </p>
+              </div>
+              <div className="list-actions">
+                <button className="btn btn-primary" onClick={startCreateUser}>
+                  <FiPlus className="btn-icon" />
+                  <span>Add user</span>
+                </button>
               </div>
             </div>
 
@@ -351,13 +355,31 @@ function DeviceUsers() {
                 </div>
                 <div className="input-group">
                   <label htmlFor="userDepartment">Department</label>
-                  <input
-                    id="userDepartment"
-                    type="text"
-                    value={editableUser?.department || ''}
-                    onChange={(event) => setEditableUser(prev => ({ ...prev, department: event.target.value }))}
-                    disabled={!isEditingUser}
-                  />
+                  {isCreatingUser && activeDepartment === 'All Departments' ? (
+                    <div className="select-wrapper">
+                      <select
+                        id="userDepartment"
+                        value={editableUser?.department || ''}
+                        onChange={(event) => setEditableUser(prev => ({ ...prev, department: event.target.value }))}
+                      >
+                        <option value="" disabled>Select department</option>
+                        {departmentOptions
+                          .filter(option => option.id !== 'All Departments')
+                          .map(option => (
+                            <option key={option.id} value={option.id}>{option.label}</option>
+                          ))}
+                      </select>
+                      <FiChevronDown className="select-arrow" />
+                    </div>
+                  ) : (
+                    <input
+                      id="userDepartment"
+                      type="text"
+                      value={editableUser?.department || ''}
+                      onChange={(event) => setEditableUser(prev => ({ ...prev, department: event.target.value }))}
+                      disabled={!isEditingUser}
+                    />
+                  )}
                 </div>
                 <div className="input-group">
                   <label htmlFor="userStatus">Status</label>
@@ -447,7 +469,7 @@ function DeviceUsers() {
                       className="btn btn-primary"
                       type="button"
                       onClick={() => {
-                        if (!editableUser?.name?.trim()) {
+                        if (!editableUser?.name?.trim() || !editableUser?.department?.trim()) {
                           return;
                         }
                         setDepartmentRoster(prev => {
