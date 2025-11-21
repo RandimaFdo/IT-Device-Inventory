@@ -299,45 +299,78 @@ function InventoryCategoryView({
       )}
 
       <aside className="device-users-summary inventory-summary">
-        <div className="summary-card">
-          <h3>Inventory snapshot</h3>
-          <ul>
-            <li>
-              <span>Total devices</span>
-              <strong>{totalDevices}</strong>
-            </li>
-            <li>
-              <span>Active</span>
-              <strong>{activeDevices}</strong>
-            </li>
-            <li>
-              <span>Back up pool</span>
-              <strong>{backupDevices}</strong>
-            </li>
-            <li>
-              <span>Disposed</span>
-              <strong>{disposedDevices}</strong>
-            </li>
-            <li>
-              <span>Assigned</span>
-              <strong>{assignedDevices}</strong>
-            </li>
-            <li>
-              <span>Unassigned</span>
-              <strong>{unassignedDevices}</strong>
-            </li>
-          </ul>
+        <div className="summary-card" style={{ marginBottom: '1.5rem' }}>
+          <div className="summary-header">
+            <div className="summary-icon">📊</div>
+            <h3>Inventory Overview</h3>
+          </div>
+          <div className="stats-grid">
+            <div className="stat-item">
+              <div className="stat-value">{totalDevices}</div>
+              <div className="stat-label">Total Devices</div>
+            </div>
+            <div className="stat-item active">
+              <div className="stat-value">{activeDevices}</div>
+              <div className="stat-label">Active</div>
+            </div>
+            <div className="stat-item backup">
+              <div className="stat-value">{backupDevices}</div>
+              <div className="stat-label">Back Up</div>
+            </div>
+            <div className="stat-item disposed">
+              <div className="stat-value">{disposedDevices}</div>
+              <div className="stat-label">Disposed</div>
+            </div>
+          </div>
+          <div className="assignment-stats">
+            <div className="assignment-item">
+              <span className="assignment-label">Assigned</span>
+              <span className="assignment-value">{assignedDevices}</span>
+            </div>
+            <div className="assignment-item">
+              <span className="assignment-label">Available</span>
+              <span className="assignment-value">{unassignedDevices}</span>
+            </div>
+          </div>
         </div>
 
-        <div className="summary-card light">
-          <h4>Utilization</h4>
-          <p className="summary-meta">
-            {assignedDevices} of {totalDevices || '--'} devices are allocated to teammates.
-          </p>
-          <div className="progress-bar">
-            <div className="progress" style={{ width: `${assignmentProgress}%` }} />
+        <div className="summary-card utilization-card">
+          <div className="summary-header">
+            <div className="summary-icon">🎯</div>
+            <h4>Device Utilization</h4>
           </div>
-          <small>Assignments sync instantly with the Device Users view.</small>
+          <div className="utilization-metrics">
+            <div className="metric-primary">
+              <div className="metric-value">{assignmentProgress}%</div>
+              <div className="metric-label">Allocation Rate</div>
+            </div>
+            <div className="metric-details">
+              <div className="metric-detail">
+                <span>In Use</span>
+                <strong>{assignedDevices}</strong>
+              </div>
+              <div className="metric-detail">
+                <span>Total Pool</span>
+                <strong>{totalDevices}</strong>
+              </div>
+            </div>
+          </div>
+          <div className="progress-container">
+            <div className="progress-label">Current Utilization</div>
+            <div className="progress-bar modern">
+              <div className="progress" style={{ width: `${assignmentProgress}%` }} />
+              <div className="progress-glow" style={{ width: `${assignmentProgress}%` }} />
+            </div>
+            <div className="progress-text">{assignedDevices} of {totalDevices} devices allocated</div>
+          </div>
+          <div className="utilization-footer">
+            <div className="status-indicator">
+              <div className={`status-dot ${assignmentProgress >= 80 ? 'high' : assignmentProgress >= 50 ? 'medium' : 'low'}`}></div>
+              <span>
+                {assignmentProgress >= 80 ? 'High utilization' : assignmentProgress >= 50 ? 'Moderate utilization' : 'Low utilization'}
+              </span>
+            </div>
+          </div>
         </div>
       </aside>
       {selectedDevice && (

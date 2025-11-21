@@ -250,52 +250,107 @@ function DeviceUsers() {
           </div>
 
           <aside className="device-users-summary">
-            <div className="summary-card profile-card hint-card">
-              <h3>User insights</h3>
-              <p className="summary-meta">
-                Choose a teammate from the roster to open their profile in a focused popup with device history.
-              </p>
-              <small>{modalUser ? 'Press Esc or use the close button to dismiss the profile.' : 'No user selected yet.'}</small>
-            </div>
-
-            <div className="summary-card">
-              <h3>Department snapshot</h3>
-              <ul>
-                <li>
-                  <span>People</span>
-                  <strong>{filteredRoster.length}</strong>
-                </li>
-                <li>
-                  <span>Active</span>
-                  <strong>{activeUsers}</strong>
-                </li>
-                <li>
-                  <span className="detail-label">Department</span>
-                  <strong>{editableUser?.department || selectedUser?.department || '—'}</strong>
-                </li>
-                <li>
-                  <span>Pending / leave</span>
-                  <strong>{pendingUsers}</strong>
-                </li>
-                <li>
-                  <span>Devices issued</span>
-                  <strong>{totalDevices}</strong>
-                </li>
-              </ul>
-            </div>
-
-            <div className="summary-card light">
-              <h4>Utilization</h4>
-              <p className="summary-meta">
-                {departmentStats[activeDepartment]?.devices || 0} total devices allocated to this department.
-              </p>
-              <div className="progress-bar">
-                <div
-                  className="progress"
-                  style={{ width: `${Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100)}%` }}
-                />
+            <div className="summary-card insights-card" style={{ marginBottom: '1.5rem' }}>
+              <div className="summary-header">
+                <div className="summary-icon">👥</div>
+                <h3>User Insights</h3>
               </div>
-              <small>Counts update automatically when devices are re-assigned.</small>
+              <div className="insights-content">
+                <p className="summary-meta">
+                  Choose a teammate from the roster to open their profile in a focused popup with device history.
+                </p>
+                <div className="insights-status">
+                  <div className={`status-indicator ${modalUser ? 'active' : 'idle'}`}>
+                    <div className="status-dot"></div>
+                    <span>{modalUser ? 'User Profile Open' : 'No User Selected'}</span>
+                  </div>
+                </div>
+                <small>{modalUser ? 'Press Esc or use the close button to dismiss the profile.' : 'Select a user to view their details and device assignments.'}</small>
+              </div>
+            </div>
+
+            <div className="summary-card department-card">
+              <div className="summary-header">
+                <div className="summary-icon">🏢</div>
+                <h3>Department Overview</h3>
+              </div>
+              <div className="stats-grid">
+                <div className="stat-item">
+                  <div className="stat-value">{filteredRoster.length}</div>
+                  <div className="stat-label">Total People</div>
+                </div>
+                <div className="stat-item active">
+                  <div className="stat-value">{activeUsers}</div>
+                  <div className="stat-label">Active</div>
+                </div>
+                <div className="stat-item pending">
+                  <div className="stat-value">{pendingUsers}</div>
+                  <div className="stat-label">Pending/Leave</div>
+                </div>
+                <div className="stat-item devices">
+                  <div className="stat-value">{totalDevices}</div>
+                  <div className="stat-label">Devices</div>
+                </div>
+              </div>
+              <div className="department-info">
+                <div className="department-detail">
+                  <span className="department-label">Current Department</span>
+                  <span className="department-value">{editableUser?.department || selectedUser?.department || 'All Departments'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="summary-card utilization-card">
+              <div className="summary-header">
+                <div className="summary-icon">📊</div>
+                <h4>Device Utilization</h4>
+              </div>
+              <div className="utilization-metrics">
+                <div className="metric-primary">
+                  <div className="metric-value">
+                    {Math.min(100, Math.round((totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100))}%
+                  </div>
+                  <div className="metric-label">Allocation Rate</div>
+                </div>
+                <div className="metric-details">
+                  <div className="metric-detail">
+                    <span>In Use</span>
+                    <strong>{totalDevices}</strong>
+                  </div>
+                  <div className="metric-detail">
+                    <span>Total Pool</span>
+                    <strong>{departmentStats[activeDepartment]?.devices || totalDevices}</strong>
+                  </div>
+                </div>
+              </div>
+              <div className="progress-container">
+                <div className="progress-label">Current Utilization</div>
+                <div className="progress-bar modern">
+                  <div 
+                    className="progress" 
+                    style={{ width: `${Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100)}%` }} 
+                  />
+                  <div 
+                    className="progress-glow" 
+                    style={{ width: `${Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100)}%` }} 
+                  />
+                </div>
+                <div className="progress-text">
+                  {totalDevices} of {departmentStats[activeDepartment]?.devices || totalDevices} devices allocated
+                </div>
+              </div>
+              <div className="utilization-footer">
+                <div className="status-indicator">
+                  <div className={`status-dot ${
+                    Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100) >= 80 ? 'high' : 
+                    Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100) >= 50 ? 'medium' : 'low'
+                  }`}></div>
+                  <span>
+                    {Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100) >= 80 ? 'High utilization' : 
+                     Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100) >= 50 ? 'Moderate utilization' : 'Low utilization'}
+                  </span>
+                </div>
+              </div>
             </div>
           </aside>
         </div>
