@@ -1497,10 +1497,6 @@ tr:last-child td {
 }
 
 /* Dark mode support for inventory summary */
-.dark-theme .device-users-summary.inventory-summary {
-  /* Inherit dark theme styles */
-}
-
 .dark-theme .summary-header h3,
 .dark-theme .summary-header h4 {
   color: var(--text);

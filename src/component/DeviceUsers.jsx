@@ -97,6 +97,13 @@ function DeviceUsers() {
   const activeUsers = filteredRoster.filter(user => user.status === 'Active').length;
   const pendingUsers = filteredRoster.length - activeUsers;
   const totalDevices = filteredRoster.reduce((sum, user) => sum + user.devices.length, 0);
+  const readinessPercent = filteredRoster.length
+    ? Math.round((activeUsers / filteredRoster.length) * 100)
+    : 0;
+  const totalDepartmentDevices = departmentStats[activeDepartment]?.devices || totalDevices;
+  const utilizationPercent = totalDepartmentDevices
+    ? Math.min(100, Math.round((totalDevices / totalDepartmentDevices) * 100))
+    : 0;
 
   const getDepartmentCount = (deptId) => {
     if (deptId === 'All Departments') return departmentRoster.length;
@@ -250,109 +257,87 @@ function DeviceUsers() {
             </div>
           </div>
 
-          <aside className="device-users-summary">
-            <div className="summary-card insights-card" style={{ marginBottom: '1.5rem' }}>
-              <div className="summary-header">
-                <div className="summary-icon">👥</div>
-                <h3>User Insights</h3>
+          <aside className="insight-panel user-insights">
+            <section className="insight-card hero-card">
+              <div className="hero-card__header">
+                <div>
+                  <p className="eyebrow">Current view</p>
+                  <h3>{activeDepartment}</h3>
+                </div>
+                <span className={`trend-pill ${readinessPercent >= 70 ? 'trend-up' : 'trend-down'}`}>
+                  {readinessPercent}% ready
+                </span>
               </div>
-              <div className="insights-content">
-                <p className="summary-meta">
-                  Choose a teammate from the roster to open their profile in a focused popup with device history.
+              <div className="hero-card__body">
+                <div>
+                  <div className="hero-value">{filteredRoster.length || '—'}</div>
+                  <p className="hero-subtitle">people on roster</p>
+                </div>
+                <div className="hero-progress">
+                  <span>{activeUsers} active · {pendingUsers} pending</span>
+                  <div className="mini-progress">
+                    <div style={{ width: `${readinessPercent}%` }} />
+                  </div>
+                  <small>{selectedUser ? `Focused on ${selectedUser.name}` : 'Select a teammate to inspect details'}</small>
+                </div>
+              </div>
+            </section>
+
+            <section className="insight-card kpi-card">
+              <header className="insight-card__header">
+                <div>
+                  <p className="eyebrow">Roster signals</p>
+                  <h4>Team snapshot</h4>
+                </div>
+                <span className="badge-soft">Live</span>
+              </header>
+              <div className="insight-kpi-grid">
+                <div className="kpi-chip">
+                  <span className="chip-label">Active today</span>
+                  <strong>{activeUsers}</strong>
+                </div>
+                <div className="kpi-chip">
+                  <span className="chip-label">Pending / leave</span>
+                  <strong>{pendingUsers}</strong>
+                </div>
+                <div className="kpi-chip">
+                  <span className="chip-label">Devices issued</span>
+                  <strong>{totalDevices}</strong>
+                </div>
+                <div className="kpi-chip">
+                  <span className="chip-label">Utilization</span>
+                  <strong>{utilizationPercent}%</strong>
+                </div>
+              </div>
+              <ul className="pill-list">
+                <li>
+                  <span className="pill-label">Department focus</span>
+                  <span className="pill-value">{editableUser?.department || selectedUser?.department || activeDepartment}</span>
+                </li>
+                <li>
+                  <span className="pill-label">Modal status</span>
+                  <span className="pill-value">{modalUser ? 'Profile open' : 'No user selected'}</span>
+                </li>
+              </ul>
+            </section>
+
+            <section className="insight-card action-card">
+              <div>
+                <p className="eyebrow">Next steps</p>
+                <h4>Keep teammates updated</h4>
+                <p className="detail-muted">
+                  Add new joiners as soon as devices are assigned so audits remain real-time.
                 </p>
-                <div className="insights-status">
-                  <div className={`status-indicator ${modalUser ? 'active' : 'idle'}`}>
-                    <div className="status-dot"></div>
-                    <span>{modalUser ? 'User Profile Open' : 'No User Selected'}</span>
-                  </div>
-                </div>
-                <small>{modalUser ? 'Press Esc or use the close button to dismiss the profile.' : 'Select a user to view their details and device assignments.'}</small>
               </div>
-            </div>
-
-            <div className="summary-card department-card">
-              <div className="summary-header">
-                <div className="summary-icon">🏢</div>
-                <h3>Department Overview</h3>
+              <div className="insight-actions">
+                <button type="button" className="btn btn-primary ghost" onClick={startCreateUser}>
+                  Add teammate
+                </button>
+                <button type="button" className="btn btn-outline subtle" onClick={() => setSelectedUserId(null)}>
+                  Clear selection
+                </button>
               </div>
-              <div className="stats-grid">
-                <div className="stat-item">
-                  <div className="stat-value">{filteredRoster.length}</div>
-                  <div className="stat-label">Total People</div>
-                </div>
-                <div className="stat-item active">
-                  <div className="stat-value">{activeUsers}</div>
-                  <div className="stat-label">Active</div>
-                </div>
-                <div className="stat-item pending">
-                  <div className="stat-value">{pendingUsers}</div>
-                  <div className="stat-label">Pending/Leave</div>
-                </div>
-                <div className="stat-item devices">
-                  <div className="stat-value">{totalDevices}</div>
-                  <div className="stat-label">Devices</div>
-                </div>
-              </div>
-              <div className="department-info">
-                <div className="department-detail">
-                  <span className="department-label">Current Department</span>
-                  <span className="department-value">{editableUser?.department || selectedUser?.department || 'All Departments'}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="summary-card utilization-card">
-              <div className="summary-header">
-                <div className="summary-icon">📊</div>
-                <h4>Device Utilization</h4>
-              </div>
-              <div className="utilization-metrics">
-                <div className="metric-primary">
-                  <div className="metric-value">
-                    {Math.min(100, Math.round((totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100))}%
-                  </div>
-                  <div className="metric-label">Allocation Rate</div>
-                </div>
-                <div className="metric-details">
-                  <div className="metric-detail">
-                    <span>In Use</span>
-                    <strong>{totalDevices}</strong>
-                  </div>
-                  <div className="metric-detail">
-                    <span>Total Pool</span>
-                    <strong>{departmentStats[activeDepartment]?.devices || totalDevices}</strong>
-                  </div>
-                </div>
-              </div>
-              <div className="progress-container">
-                <div className="progress-label">Current Utilization</div>
-                <div className="progress-bar modern">
-                  <div 
-                    className="progress" 
-                    style={{ width: `${Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100)}%` }} 
-                  />
-                  <div 
-                    className="progress-glow" 
-                    style={{ width: `${Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100)}%` }} 
-                  />
-                </div>
-                <div className="progress-text">
-                  {totalDevices} of {departmentStats[activeDepartment]?.devices || totalDevices} devices allocated
-                </div>
-              </div>
-              <div className="utilization-footer">
-                <div className="status-indicator">
-                  <div className={`status-dot ${
-                    Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100) >= 80 ? 'high' : 
-                    Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100) >= 50 ? 'medium' : 'low'
-                  }`}></div>
-                  <span>
-                    {Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100) >= 80 ? 'High utilization' : 
-                     Math.min(100, (totalDevices / Math.max(1, departmentStats[activeDepartment]?.devices || totalDevices)) * 100) >= 50 ? 'Moderate utilization' : 'Low utilization'}
-                  </span>
-                </div>
-              </div>
-            </div>
+            </section>
           </aside>
         </div>
       </main>

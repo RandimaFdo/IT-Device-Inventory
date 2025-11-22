@@ -298,80 +298,87 @@ function InventoryCategoryView({
         </div>
       )}
 
-      <aside className="device-users-summary inventory-summary">
-        <div className="summary-card" style={{ marginBottom: '1.5rem' }}>
-          <div className="summary-header">
-            <div className="summary-icon">📊</div>
-            <h3>Inventory Overview</h3>
+      <aside className="insight-panel inventory-insights">
+        <section className="insight-card hero-card">
+          <div className="hero-card__header">
+            <div>
+              <p className="eyebrow">Workspace health</p>
+              <h3>Inventory pulse</h3>
+            </div>
+            <span className={`trend-pill ${assignmentProgress >= 60 ? 'trend-up' : 'trend-down'}`}>
+              {assignmentProgress >= 60 ? '↑ Stable' : '↓ Attention'}
+            </span>
           </div>
-          <div className="stats-grid">
-            <div className="stat-item">
-              <div className="stat-value">{totalDevices}</div>
-              <div className="stat-label">Total Devices</div>
+          <div className="hero-card__body">
+            <div>
+              <div className="hero-value">{totalDevices}</div>
+              <p className="hero-subtitle">devices tracked</p>
             </div>
-            <div className="stat-item active">
-              <div className="stat-value">{activeDevices}</div>
-              <div className="stat-label">Active</div>
-            </div>
-            <div className="stat-item backup">
-              <div className="stat-value">{backupDevices}</div>
-              <div className="stat-label">Back Up</div>
-            </div>
-            <div className="stat-item disposed">
-              <div className="stat-value">{disposedDevices}</div>
-              <div className="stat-label">Disposed</div>
-            </div>
-          </div>
-          <div className="assignment-stats">
-            <div className="assignment-item">
-              <span className="assignment-label">Assigned</span>
-              <span className="assignment-value">{assignedDevices}</span>
-            </div>
-            <div className="assignment-item">
-              <span className="assignment-label">Available</span>
-              <span className="assignment-value">{unassignedDevices}</span>
+            <div className="hero-progress">
+              <span>{assignmentProgress}% allocation</span>
+              <div className="mini-progress">
+                <div style={{ width: `${assignmentProgress}%` }} />
+              </div>
+              <small>{assignedDevices} in use · {unassignedDevices} available</small>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="summary-card utilization-card">
-          <div className="summary-header">
-            <div className="summary-icon">🎯</div>
-            <h4>Device Utilization</h4>
-          </div>
-          <div className="utilization-metrics">
-            <div className="metric-primary">
-              <div className="metric-value">{assignmentProgress}%</div>
-              <div className="metric-label">Allocation Rate</div>
+        <section className="insight-card kpi-card">
+          <header className="insight-card__header">
+            <div>
+              <p className="eyebrow">Lifecycle</p>
+              <h4>Status distribution</h4>
             </div>
-            <div className="metric-details">
-              <div className="metric-detail">
-                <span>In Use</span>
-                <strong>{assignedDevices}</strong>
-              </div>
-              <div className="metric-detail">
-                <span>Total Pool</span>
-                <strong>{totalDevices}</strong>
-              </div>
+            <span className="badge-soft">Live view</span>
+          </header>
+          <div className="insight-kpi-grid">
+            <div className="kpi-chip">
+              <span className="chip-label">Active</span>
+              <strong>{activeDevices}</strong>
             </div>
-          </div>
-          <div className="progress-container">
-            <div className="progress-label">Current Utilization</div>
-            <div className="progress-bar modern">
-              <div className="progress" style={{ width: `${assignmentProgress}%` }} />
-              <div className="progress-glow" style={{ width: `${assignmentProgress}%` }} />
+            <div className="kpi-chip">
+              <span className="chip-label">Back up</span>
+              <strong>{backupDevices}</strong>
             </div>
-            <div className="progress-text">{assignedDevices} of {totalDevices} devices allocated</div>
-          </div>
-          <div className="utilization-footer">
-            <div className="status-indicator">
-              <div className={`status-dot ${assignmentProgress >= 80 ? 'high' : assignmentProgress >= 50 ? 'medium' : 'low'}`}></div>
-              <span>
-                {assignmentProgress >= 80 ? 'High utilization' : assignmentProgress >= 50 ? 'Moderate utilization' : 'Low utilization'}
-              </span>
+            <div className="kpi-chip">
+              <span className="chip-label">Disposed</span>
+              <strong>{disposedDevices}</strong>
+            </div>
+            <div className="kpi-chip">
+              <span className="chip-label">New adds</span>
+              <strong>{filteredInventory.slice(-3).length}</strong>
             </div>
           </div>
-        </div>
+          <ul className="pill-list">
+            <li>
+              <span className="pill-label">Assigned</span>
+              <span className="pill-value">{assignedDevices}</span>
+            </li>
+            <li>
+              <span className="pill-label">Available</span>
+              <span className="pill-value">{unassignedDevices}</span>
+            </li>
+          </ul>
+        </section>
+
+        <section className="insight-card action-card">
+          <div>
+            <p className="eyebrow">Next best actions</p>
+            <h4>Keep the shelf fresh</h4>
+            <p className="detail-muted">
+              Schedule a refresh for aging hardware and keep utilization under 80% to maintain agility.
+            </p>
+          </div>
+          <div className="insight-actions">
+            <button type="button" className="btn btn-primary ghost" onClick={onOpenDeviceForm}>
+              Add hardware
+            </button>
+            <button type="button" className="btn btn-outline subtle" onClick={() => inventorySectionRef?.current?.scrollIntoView({ behavior: 'smooth' })}>
+              Review records
+            </button>
+          </div>
+        </section>
       </aside>
       {selectedDevice && (
         <div className="modal-overlay" role="presentation" onClick={closeDeviceModal}>
