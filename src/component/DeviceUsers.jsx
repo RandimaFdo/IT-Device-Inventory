@@ -7,7 +7,8 @@ import {
   FiCpu,
   FiCoffee,
   FiTool,
-  FiPlus
+  FiPlus,
+  FiChevronDown
 } from 'react-icons/fi';
 
 const departmentOptions = [
