@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { FiGrid, FiMonitor, FiCpu, FiMousePointer, FiSmartphone, FiLayers, FiMail, FiTrendingUp, FiShield, FiBox, FiTrash2 } from 'react-icons/fi';
 import './App.css';
 import NavBar from './component/NavBar';
@@ -8,8 +9,25 @@ import DeviceUsers from './component/DeviceUsers';
 import Settings from './component/Settings';
 import Footer from './component/Footer';
 
+const tabToPathMap = {
+  dashboard: '/',
+  inventory: '/inventory',
+  reports: '/device-users',
+  settings: '/settings'
+};
+
+const pathToTabMap = Object.entries(tabToPathMap).reduce((acc, [tab, path]) => {
+  acc[path] = tab;
+  return acc;
+}, {});
+
+const normalizePath = (path = '/') => {
+  if (path.length <= 1) return '/';
+  const trimmedPath = path.replace(/\/+$/, '');
+  return trimmedPath || '/';
+};
+
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [inventory, setInventory] = useState([
@@ -34,6 +52,11 @@ function App() {
   const [editingItemId, setEditingItemId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const inventorySectionRef = useRef(null);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const normalizedPath = normalizePath(location.pathname);
+  const activeTab = pathToTabMap[normalizedPath] || 'dashboard';
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-theme' : 'light-theme';
@@ -212,56 +235,10 @@ function App() {
     return `${label} Inventory`;
   };
 
-  const handleNavigate = () => {};
-
-  const renderPageContent = () => {
-    switch (activeTab) {
-      case 'inventory':
-        return (
-          <Inventory
-            subNavOptions={subNavOptions}
-            activeInventoryType={activeInventoryType}
-            setActiveInventoryType={setActiveInventoryType}
-            getTypeCount={getTypeCount}
-            newItem={newItem}
-            handleInputChange={handleInputChange}
-            addItem={addItem}
-            isAllInventoryView={isAllInventoryView}
-            assetTypeOptions={assetTypeOptions}
-            inventorySectionRef={inventorySectionRef}
-            getInventoryHeading={getInventoryHeading}
-            filteredInventory={filteredInventory}
-            removeItem={removeItem}
-            searchQuery={searchQuery}
-            onSearchChange={handleSearchChange}
-            isEditing={isEditing}
-            onEditItem={handleEditItem}
-            onCancelEdit={cancelEdit}
-            resetNewItem={resetNewItem}
-          />
-        );
-      case 'reports':
-        return <DeviceUsers />;
-      case 'settings':
-        return (
-          <Settings
-            settingsOptions={settingsOptions}
-            toggleSetting={toggleSetting}
-          />
-        );
-      default:
-        return (
-          <Dashboard
-            dashboardHighlights={dashboardHighlights}
-            activityLog={filteredActivityLog}
-            lifecycleBreakdown={lifecycleBreakdown}
-            totalQuantity={totalQuantity}
-            backupAssets={backupAssets}
-            disposedAssets={disposedAssets}
-            isMenuOpen={isMenuOpen}
-            searchQuery={searchQuery}
-          />
-        );
+  const handleNavigate = (tabId) => {
+    const targetPath = tabToPathMap[tabId] || tabToPathMap.dashboard;
+    if (normalizedPath !== targetPath) {
+      navigate(targetPath);
     }
   };
 
@@ -269,15 +246,65 @@ function App() {
     <div className={`app ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
       <NavBar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
         isMenuOpen={isMenuOpen}
         toggleMenu={toggleMenu}
         onNavigate={handleNavigate}
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
       />
 
-      {renderPageContent()}
+      <Routes>
+        <Route
+          path="/"
+          element={(
+            <Dashboard
+              dashboardHighlights={dashboardHighlights}
+              activityLog={filteredActivityLog}
+              lifecycleBreakdown={lifecycleBreakdown}
+              totalQuantity={totalQuantity}
+              backupAssets={backupAssets}
+              disposedAssets={disposedAssets}
+              isMenuOpen={isMenuOpen}
+              searchQuery={searchQuery}
+            />
+          )}
+        />
+        <Route
+          path="/inventory"
+          element={(
+            <Inventory
+              subNavOptions={subNavOptions}
+              activeInventoryType={activeInventoryType}
+              setActiveInventoryType={setActiveInventoryType}
+              getTypeCount={getTypeCount}
+              newItem={newItem}
+              handleInputChange={handleInputChange}
+              addItem={addItem}
+              isAllInventoryView={isAllInventoryView}
+              assetTypeOptions={assetTypeOptions}
+              inventorySectionRef={inventorySectionRef}
+              getInventoryHeading={getInventoryHeading}
+              filteredInventory={filteredInventory}
+              removeItem={removeItem}
+              searchQuery={searchQuery}
+              onSearchChange={handleSearchChange}
+              isEditing={isEditing}
+              onEditItem={handleEditItem}
+              onCancelEdit={cancelEdit}
+              resetNewItem={resetNewItem}
+            />
+          )}
+        />
+        <Route path="/device-users" element={<DeviceUsers />} />
+        <Route
+          path="/settings"
+          element={(
+            <Settings
+              settingsOptions={settingsOptions}
+              toggleSetting={toggleSetting}
+            />
+          )}
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       <footer className="app-footer">
         <div className="footer-content compact">

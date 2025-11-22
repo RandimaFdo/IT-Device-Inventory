@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FiSearch, FiMenu, FiX } from 'react-icons/fi';
 import { BsSpeedometer2, BsBoxSeam, BsGraphUp, BsGear } from 'react-icons/bs';
 
-function NavBar({ activeTab, setActiveTab, isMenuOpen, toggleMenu, onNavigate, searchQuery, onSearchChange }) {
+function NavBar({ activeTab, isMenuOpen, toggleMenu, onNavigate, searchQuery, onSearchChange }) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -39,7 +39,6 @@ function NavBar({ activeTab, setActiveTab, isMenuOpen, toggleMenu, onNavigate, s
               key={item.id}
               className={`nav-link ${activeTab === item.id ? 'active' : ''}`}
               onClick={() => {
-                setActiveTab(item.id);
                 if (onNavigate) onNavigate(item.id);
                 if (window.innerWidth < 1024) toggleMenu();
               }}
