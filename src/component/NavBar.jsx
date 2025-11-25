@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FiSearch, FiMenu, FiX } from 'react-icons/fi';
 import { BsSpeedometer2, BsBoxSeam, BsGraphUp, BsGear } from 'react-icons/bs';
 
-function NavBar({ activeTab, isMenuOpen, toggleMenu, onNavigate, searchQuery, onSearchChange }) {
+function NavBar({ activeTab, isMenuOpen, toggleMenu, onNavigate }) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
